@@ -1,34 +1,34 @@
 {
-    "linter": {
-      "enabled": true,
-      "rules": {
-        "style": {
-          "noImplicitAny": "error",
-          "useBlockStatements": "error"
-        },
-        "correctness": {
-          "noUnusedVariables": "error",
-          "noUnreachable": "error"
-        },
-        "suspicious": {
-          "noImplicitReturns": "warn"
-        }
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "noImplicitAny": "error",
+        "useBlockStatements": "error"
       },
-      "ignore": ["dist/**/*"]
-    },
-    "formatter": {
-      "enabled": true,
-      "formatWithErrors": false,
-      "indentStyle": "space",
-      "indentWidth": 2
-    },
-    "tests": {
-      "enabled": true,
-      "include": ["tests/**/*.test.ts"]
-    },
-    "javascript": {
-      "parser": {
-        "unsafeParameterDecoratorsEnabled": true
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnreachable": "error"
+      },
+      "suspicious": {
+        "noImplicitReturns": "warn"
       }
+    },
+    "ignore": ["dist/**/*"]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "tests": {
+    "enabled": true,
+    "include": ["tests/**/*.test.ts"]
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
     }
   }
+}

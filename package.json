@@ -28,16 +28,23 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.7.4",
-    "typescript": "^5.6.3",
     "jest": "^29.7.0",
-    "@types/jest": "^29.5.12",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3",
+    "unicorn-magic": "^0.3.0"
   },
   "author": "tmrw.it",
   "license": "MIT",
-  "keywords": ["cli", "cloud", "lock-in", "deplatforming", "infrastructure"],
+  "keywords": [
+    "cli",
+    "cloud",
+    "lock-in",
+    "deplatforming",
+    "infrastructure"
+  ],
   "homepage": "https://tmrw.it",
   "repository": {
     "type": "git",

@@ -1,21 +1,92 @@
 {
-    "aws": [
-      { "name": "aws_lambda_function", "lockInScore": 0.8, "category": "compute", "deplatformRisk": 0.2 },
-      { "name": "aws_s3_bucket", "lockInScore": 0.6, "category": "storage", "deplatformRisk": 0.4 },
-      { "name": "aws_dynamodb_table", "lockInScore": 0.9, "category": "database", "deplatformRisk": 0.1 },
-      { "name": "aws_ec2_instance", "lockInScore": 0.5, "category": "compute", "deplatformRisk": 0.2 }
-    ],
-    "azure": [
-      { "name": "azurerm_function_app", "lockInScore": 0.8, "category": "compute", "deplatformRisk": 0.2 },
-      { "name": "azurerm_cosmosdb_account", "lockInScore": 0.9, "category": "database", "deplatformRisk": 0.1 }
-    ],
-    "gcp": [
-      { "name": "google_cloud_functions", "lockInScore": 0.8, "category": "compute", "deplatformRisk": 0.2 },
-      { "name": "google_cloud_storage_bucket", "lockInScore": 0.6, "category": "storage", "deplatformRisk": 0.3 }
-    ],
-    "portable": [
-      { "name": "docker", "lockInScore": 0.1, "category": "compute", "deplatformRisk": 0.0 },
-      { "name": "kubernetes", "lockInScore": 0.2, "category": "orchestration", "deplatformRisk": 0.0 },
-      { "name": "postgresql", "lockInScore": 0.1, "category": "database", "deplatformRisk": 0.0 }
-    ]
-  }
+  "aws": [
+    {
+      "name": "aws_lambda_function",
+      "lockInScore": 0.8,
+      "category": "compute",
+      "deplatformRisk": 0.2
+    },
+    {
+      "name": "aws_s3_bucket",
+      "lockInScore": 0.6,
+      "category": "storage",
+      "deplatformRisk": 0.4
+    },
+    {
+      "name": "aws_dynamodb_table",
+      "lockInScore": 0.9,
+      "category": "database",
+      "deplatformRisk": 0.1
+    },
+    {
+      "name": "aws_ec2_instance",
+      "lockInScore": 0.5,
+      "category": "compute",
+      "deplatformRisk": 0.2
+    }
+  ],
+  "azure": [
+    {
+      "name": "azurerm_function_app",
+      "lockInScore": 0.8,
+      "category": "compute",
+      "deplatformRisk": 0.2
+    },
+    {
+      "name": "azurerm_cosmosdb_account",
+      "lockInScore": 0.9,
+      "category": "database",
+      "deplatformRisk": 0.1
+    }
+  ],
+  "gcp": [
+    {
+      "name": "google_cloud_functions",
+      "lockInScore": 0.8,
+      "category": "compute",
+      "deplatformRisk": 0.2
+    },
+    {
+      "name": "google_cloud_storage_bucket",
+      "lockInScore": 0.6,
+      "category": "storage",
+      "deplatformRisk": 0.3
+    }
+  ],
+  "ibm": [
+    {
+      "name": "ibm_cloud_function",
+      "lockInScore": 0.7,
+      "category": "compute",
+      "deplatformRisk": 0.3
+    }
+  ],
+  "oracle": [
+    {
+      "name": "oci_functions_function",
+      "lockInScore": 0.8,
+      "category": "compute",
+      "deplatformRisk": 0.3
+    }
+  ],
+  "portable": [
+    {
+      "name": "docker",
+      "lockInScore": 0.1,
+      "category": "compute",
+      "deplatformRisk": 0.0
+    },
+    {
+      "name": "kubernetes",
+      "lockInScore": 0.2,
+      "category": "orchestration",
+      "deplatformRisk": 0.0
+    },
+    {
+      "name": "postgresql",
+      "lockInScore": 0.1,
+      "category": "database",
+      "deplatformRisk": 0.0
+    }
+  ]
+}

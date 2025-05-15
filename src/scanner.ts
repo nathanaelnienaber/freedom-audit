@@ -1,7 +1,10 @@
-import { globby } from 'globby';
-import { analyzeFiles, ScanResults } from './analyzer';
+import { globby } from "globby";
+import { analyzeFiles, ScanResults } from "./analyzer";
+import chalk from "chalk";
 import dotenv from 'dotenv';
-import chalk from 'chalk';
+if (!process.env.JEST_WORKER_ID) {
+  dotenv.config();
+}
 
 /**
  * Scans the codebase for relevant files and analyzes them for CLV scoring.
@@ -10,30 +13,35 @@ import chalk from 'chalk';
  * @throws Error if scanning fails or no files are found.
  */
 export async function scanCodebase(rootDir: string): Promise<ScanResults> {
-  dotenv.config();
 
-  console.log('🔍 Scanning your codebase for traps...');
+  console.log("🔍 Scanning your codebase for traps...");
 
-  const patterns = process.env.FILE_PATTERNS?.split(',').map((p) => p.trim()) ?? [
-    '**/*.tf',
-    '**/*.yml',
-    '**/*.yaml',
-    '**/*.json',
-    '**/Dockerfile',
-    '**/package.json',
-    '!node_modules/**',
-    '!dist/**',
-    '!build/**',
-    '!vendor/**',
+  const patterns = process.env.FILE_PATTERNS?.split(",").map((p) =>
+    p.trim(),
+  ) ?? [
+    "**/*.tf",
+    "**/*.yml",
+    "**/*.yaml",
+    "**/*.json",
+    "**/Dockerfile",
+    "**/package.json",
+    "!node_modules/**",
+    "!dist/**",
+    "!build/**",
+    "!vendor/**",
   ];
 
   try {
     const files = await globby(patterns, { cwd: rootDir, gitignore: true });
     if (!files.length) {
-      throw new Error('No infrastructure files found. The cloud hides, but we’ll find it. Check your .env FILE_PATTERNS.');
+      throw new Error(
+        "No infrastructure files found. The cloud hides, but we’ll find it. Check your .env FILE_PATTERNS.",
+      );
     }
-    if (process.env.DEBUG === 'true') {
-      console.log(chalk.dim(`Found ${files.length} files: ${files.join(', ')}`));
+    if (process.env.DEBUG === "true") {
+      console.log(
+        chalk.dim(`Found ${files.length} files: ${files.join(", ")}`),
+      );
     }
     return await analyzeFiles(files, rootDir);
   } catch (err) {

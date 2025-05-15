@@ -9,6 +9,7 @@ The cloud is a cage. `tmrw audit` is your escape kit. It scans your codebase to 
 ## Why Use It?
 
 Cloud giants—AWS, Azure, Google—control your infra with ToS that can shift overnight. `tmrw audit` empowers you to:
+
 - **See Your Risk**: A Freedom Score shows your lock-in level.
 - **Escape the Cage**: Get steps to reduce dependency (e.g., swap Lambda for Docker).
 - **Stay Sovereign**: Build infrastructure you truly own.
@@ -16,6 +17,7 @@ Cloud giants—AWS, Azure, Google—control your infra with ToS that can shift o
 ## Installation
 
 Install `tmrw audit` globally from npm:
+
 ```bash
 npm install -g tmrw-audit
 ```
@@ -23,12 +25,14 @@ npm install -g tmrw-audit
 ## Usage
 
 Navigate to your project directory and run:
+
 ```bash
 cd your-project
 tmrw audit
 ```
 
 ### Example Output
+
 ```
 AUDIT COMPLETE: YOUR INFRA'S FATE EXPOSED
 Freedom Score: 80/100 (CAUTIOUS)
@@ -43,55 +47,72 @@ Report saved to: ./tmrw-audit-report.json
 ```
 
 To view the detailed report:
+
 ```bash
 tmrw report
 ```
 
 ### Configuration
+
 Customize file patterns or enable debug mode by creating a `.env` file:
+
 ```bash
 cp .env.example .env
 ```
+
 Edit `.env` to set `FILE_PATTERNS` (e.g., `**/*.tf,**/*.yml`) or `DEBUG=true`.
 
 ## Commands
+
 - `tmrw audit`: Scan your codebase and get your Freedom Score.
 - `tmrw report [file]`: View a saved report (default: `./tmrw-audit-report.json`).
 
-
 ## Contributing
+
 Join the Unchained Cloud movement. Fork the repo, add features (e.g., new file parsers, enhanced scoring), and submit a PR. See `CONTRIBUTING.md` for details.
 
 ### Setup for Contributors
+
 Clone the repo:
+
 ```bash
 git clone https://github.com/tmrw-it/tmrw-audit.git
 cd tmrw-audit
 ```
+
 Install dependencies:
+
 ```bash
 npm install
 ```
+
 Build and link locally:
+
 ```bash
 npm run build
 npm link
 ```
+
 Run tests:
+
 ```bash
 npm test
 ```
 
 ## License
+
 MIT License. See `LICENSE` for details:
+
 ```
 MIT License
 Copyright (c) 2025 tmrw.it
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software...
 ```
+
 The MIT license ensures `tmrw audit` remains open-source and forkable, aligning with its user-owned ethos.
 
 ## Join the Movement
+
 The cloud isn’t your friend. Run `tmrw audit` to see your risk.
 
 Own your cloud or lose it.
