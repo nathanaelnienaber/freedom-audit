@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+tmrw-audit-report.json
+dist/
+.env
+coverage/
