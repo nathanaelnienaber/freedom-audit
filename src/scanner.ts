@@ -18,6 +18,7 @@ export async function scanCodebase(rootDir: string): Promise<ScanResults> {
     '**/*.tf',
     '**/*.yml',
     '**/*.yaml',
+    '**/*.json',
     '**/Dockerfile',
     '**/package.json',
     '!node_modules/**',
