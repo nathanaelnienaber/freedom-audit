@@ -7,7 +7,7 @@ if (!process.env.JEST_WORKER_ID) {
 }
 
 /**
- * Scans the codebase for relevant files and analyzes them for CLV scoring.
+ * Scans the codebase for relevant files and analyzes them for Cloud Vendor Lock-in (CVL) scoring.
  * @param rootDir - The root directory of the codebase.
  * @returns A promise resolving to the scan results.
  * @throws Error if scanning fails or no files are found.

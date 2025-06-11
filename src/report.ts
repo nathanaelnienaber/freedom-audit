@@ -41,12 +41,12 @@ export async function displayReport(
     console.log(`Timestamp: ${report.timestamp}`);
     console.log(
       chalk.bold(
-        `Cloud Lock-in Vulnerability (CLV) Score: ${report.clvScore}/100 (${report.riskLabel})`,
+        `Freedome Score: ${report.freedomScore}/100 (${report.riskLabel})`,
       ),
     );
     console.log(`Vendor Lock-In: ${report.lockInScore}%`);
     console.log(`Deplatforming Risk: ${report.deplatformingRisk}`);
-    console.log(chalk.dim("CLV Score Breakdown:"));
+    console.log(chalk.dim("Freedom Score Breakdown:"));
     console.log(
       `- Vendor Lock-In Penalty: ${(report.lockInScore * 0.5).toFixed(1)}`,
     );

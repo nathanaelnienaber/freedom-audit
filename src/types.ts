@@ -17,7 +17,7 @@ export interface VendorService {
  */
 export interface ScanResults {
   /** Cloud Lock-in Vulnerability (CLV) score (0–100) */
-  clvScore: number;
+  freedomScore: number;
   /** Vendor lock-in score (0–100) */
   lockInScore: number;
   /** Deplatforming risk score (0–100) */

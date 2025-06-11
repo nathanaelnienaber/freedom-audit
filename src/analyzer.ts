@@ -1,11 +1,9 @@
 /**
- * analyzer.ts
- *
  * WHY THIS FILE EXISTS:
- * This file is responsible for analyzing various IaC and config files in the codebase.
- * It detects services, calculates lock-in scores, and measures deplatforming risk.
- *
- * TEAM-FRIENDLY COMMENTS:
+ * - This file is responsible for analyzing various IaC and config files in the codebase.
+ * - It detects services, calculates lock-in scores, and measures deplatforming risk.
+ * 
+ * NOTES:
  * - We've added logic to detect CloudFormation JSON files and Helm YAML charts.
  * - Keep changes minimal and clear. Follow a simple approach to avoid overcomplicating the parser.
  */
@@ -233,7 +231,7 @@ export async function analyzeFiles(
     : 0;
 
   // Example CLV formula
-  const clvScore = Math.round(
+  const freedomScore = Math.round(
     100 -
       lockInScore * 0.5 -
       deplatformingRiskScore * 0.3 -
@@ -242,14 +240,14 @@ export async function analyzeFiles(
 
   // Return our computed scan results
   return {
-    clvScore,
+    freedomScore,
     lockInScore,
     deplatformingRiskScore,
     portabilityScore,
     vendorServices: vendorServicesFound,
     providers: Array.from(providers),
     riskLabel:
-      clvScore < 50 ? "VULNERABLE" : clvScore <= 75 ? "AT RISK" : "CAUTIOUS",
+      freedomScore < 50 ? "VULNERABLE" : freedomScore <= 75 ? "AT RISK" : "CAUTIOUS",
     deplatformingRisk:
       deplatformingRiskScore > 70
         ? "HIGH"

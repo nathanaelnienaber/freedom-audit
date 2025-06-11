@@ -15,7 +15,7 @@ program
       const results: ScanResults = await scanCodebase(process.cwd());
       console.log("AUDIT COMPLETE: YOUR INFRA’S FATE EXPOSED");
       console.log(
-        `Cloud Lock-in Vulnerability (CLV) Score: ${results.clvScore}/100 (${results.riskLabel})`,
+        `Feedom Score: ${results.freedomScore}/100 (${results.riskLabel})`,
       );
       console.log(`Vendor Lock-In: ${results.lockInScore.toFixed(1)}%`);
       console.log(`Deplatforming Risk: ${results.deplatformingRisk}`);
