@@ -1,12 +1,9 @@
-/**
- * WHY THIS FILE EXISTS:
- * - This file is responsible for analyzing various IaC and config files in the codebase.
- * - It detects services, calculates lock-in scores, and measures deplatforming risk.
- * 
- * NOTES:
- * - We've added logic to detect CloudFormation JSON files and Helm YAML charts.
- * - Keep changes minimal and clear. Follow a simple approach to avoid overcomplicating the parser.
- */
+// tmrw audit - Codebase Analyzer
+// Why this exists: To identify and quantify lock-in, deplatforming, and proprietary format risks in a codebase, empowering users to achieve an unchained infrastructure.
+// What it does: Parses Terraform (.tf), YAML (.yml/.yaml), CloudFormation JSON, and package.json files to detect cloud service dependencies, calculate the Freedom Score, and assess lock-in, deplatforming, and portability risks.
+// How it works: Reads files, identifies providers and services using vendor-services.json, computes scores based on lock-in, deplatforming risk, and portability, and returns actionable results.
+// Part of the TMRW Manifesto for user-owned, unchained infrastructure.
+// Copyright (c) 2025 tmrw.it | MIT License
 
 import fs from "fs-extra";
 import path from "path";
@@ -16,221 +13,244 @@ import chalk from "chalk";
 import { ScanResults, VendorService } from "./types";
 export { ScanResults, VendorService } from "./types";
 
-// We require vendor-services.json so we can look up lockInScore, deplatformRisk, etc.
-const vendorServices: Record<
-  string,
-  VendorService[]
-> = require("../data/vendor-services.json");
+// Load vendor services data for scoring and portability checks
+const vendorServices: Record<string, VendorService[]> = require("../data/vendor-services.json");
 
-export async function analyzeFiles(
-  files: string[],
-  rootDir: string,
-): Promise<ScanResults> {
-  // Tracking data for summary
-  let vendorServicesFound: string[] = [];
-  let totalServices = 0;
-  let providers = new Set<string>();
-  let openStandardsCount = 0;
-  let highRiskServices = 0;
+// Define the structure for data returned by parsing functions
+type ParsedData = {
+  providers: string[];        // List of detected cloud providers (e.g., "aws", "azure")
+  services: string[];         // List of detected services (e.g., "aws_lambda_function", "docker")
+  highRiskIncrement: number;  // Incremental risk score for specific high-risk services
+};
 
-  for (const file of files) {
-    const filePath = path.join(rootDir, file);
+/**
+ * Parses a Terraform (.tf) file to extract provider and service information.
+ * @param filePath - Path to the Terraform file.
+ * @returns An object containing providers, services, and a high-risk increment (0 for Terraform).
+ */
+async function parseTerraformFile(filePath: string): Promise<ParsedData> {
+  const content = await fs.readFile(filePath, "utf8");
+  let parsed: any;
+  try {
+    parsed = hcl.parse(content);
+  } catch (err) {
+    if (process.env.DEBUG === "true") {
+      console.warn(chalk.yellow(`Skipping invalid Terraform file: ${filePath}`));
+    }
+    return { providers: [], services: [], highRiskIncrement: 0 };
+  }
 
-    try {
-      // 1. Terraform: .tf files
-      if (file.endsWith(".tf")) {
-        const content = await fs.readFile(filePath, "utf8");
-        let parsed: any;
-        try {
-          parsed = hcl.parse(content);
-        } catch (err) {
-          // If it's invalid Terraform, skip. Debug mode logs a warning.
-          if (process.env.DEBUG === "true") {
-            console.warn(
-              chalk.yellow(`Skipping invalid Terraform file: ${file}`),
-            );
-          }
-          continue;
-        }
-        // Collect providers from "provider" blocks
-        const providerBlocks: { provider: string }[] = parsed.body.filter(
-          (b: any) => b.provider,
-        );
-        providerBlocks.forEach((b: { provider: string }) =>
-          providers.add(b.provider),
-        );
+  // Extract providers from "provider" blocks (e.g., "aws", "azure")
+  const providers = parsed.body
+    .filter((b: any) => b.provider)
+    .map((b: any) => b.provider);
 
-        // Collect resources from "resource" blocks
-        const resources = parsed.body
-          .filter((b: any) => b.resource)
-          .map((b: any) => b.resource.type);
-        vendorServicesFound.push(...resources);
-        totalServices += resources.length;
+  // Extract services from "resource" blocks (e.g., "aws_lambda_function")
+  const services = parsed.body
+    .filter((b: any) => b.resource)
+    .map((b: any) => b.resource.type);
 
-        // Evaluate each resource for lockInScore and deplatformRisk
-        resources.forEach((res: string) => {
-          const service = Object.values(vendorServices)
-            .flat()
-            .find((s) => s.name === res);
-          if (service) {
-            if (vendorServices.portable.some((s) => s.name === res)) {
-              openStandardsCount++;
-            }
-            if (service.deplatformRisk > 0.3) {
-              highRiskServices++;
-            }
-          }
-        });
+  return { providers, services, highRiskIncrement: 0 };
+}
 
-        // 2. YAML files (serverless, docker-compose, Helm, etc.)
-      } else if (file.endsWith(".yml") || file.endsWith(".yaml")) {
-        const content = await fs.readFile(filePath, "utf8");
-        let config: any;
-        try {
-          config = yaml.load(content);
-        } catch (err) {
-          if (process.env.DEBUG === "true") {
-            console.warn(chalk.yellow(`Skipping invalid YAML file: ${file}`));
-          }
-          continue;
-        }
+/**
+ * Parses a YAML (.yml/.yaml) file to detect providers, services, and portable standards.
+ * Handles serverless frameworks, docker-compose, and Helm charts.
+ * @param filePath - Path to the YAML file.
+ * @returns An object containing providers, services, and a high-risk increment for serverless functions.
+ */
+async function parseYamlFile(filePath: string): Promise<ParsedData> {
+  const content = await fs.readFile(filePath, "utf8");
+  let config: any;
+  try {
+    config = yaml.load(content);
+  } catch (err) {
+    if (process.env.DEBUG === "true") {
+      console.warn(chalk.yellow(`Skipping invalid YAML file: ${filePath}`));
+    }
+    return { providers: [], services: [], highRiskIncrement: 0 };
+  }
 
-        // Detect generic provider patterns (e.g., serverless framework)
-        if (config.provider?.name) {
-          providers.add(config.provider.name);
-          const functions = (config.functions || []).map(
-            () => `${config.provider.name}_function`,
-          );
-          vendorServicesFound.push(...functions);
-          totalServices += functions.length;
-          // Arbitrary high risk increment for each function
-          highRiskServices += functions.length * 0.2;
-        }
+  let providers: string[] = [];
+  let services: string[] = [];
+  let highRiskIncrement = 0;
 
-        // Detect docker-compose usage (portable)
-        if (file.includes("docker-compose")) {
-          const serviceCount = Object.keys(config.services || {}).length;
-          openStandardsCount += serviceCount;
-          vendorServicesFound.push("docker");
-          totalServices += serviceCount;
-        }
+  // Detect serverless framework usage (e.g., AWS Serverless Framework)
+  if (config.provider?.name) {
+    providers.push(config.provider.name);
+    const functions = config.functions || [];
+    services = functions.map(() => `${config.provider.name}_function`);
+    highRiskIncrement = functions.length * 0.2; // Each function adds 0.2 to high-risk score
+  }
 
-        // Detect Helm charts (simple approach checking for 'apiVersion' or 'kind' references)
-        if (
-          config.apiVersion &&
-          typeof config.apiVersion === "string" &&
-          config.apiVersion.includes("helm.sh")
-        ) {
-          // If it's likely Helm, treat as portable or partially portable
-          openStandardsCount++;
-          // You might add more logic to parse the Helm template for resources,
-          // but we'll keep it simple for now.
-        }
-        if (config.kind && config.kind === "Chart") {
-          // Another sign it's Helm
-          openStandardsCount++;
-        }
+  // Detect docker-compose files (assumed portable)
+  if (path.basename(filePath).includes("docker-compose")) {
+    const serviceCount = Object.keys(config.services || {}).length;
+    services = Array(serviceCount).fill("docker"); // One "docker" service per defined service
+  }
 
-        // 3. CloudFormation JSON
-      } else if (file.endsWith(".json")) {
-        // Basic check for CloudFormation template: has "Resources" object with "Type" fields
-        let cfTemplate: any;
-        try {
-          cfTemplate = await fs.readJson(filePath);
-        } catch (err) {
-          // If parsing fails, skip
-          if (process.env.DEBUG === "true") {
-            console.warn(chalk.yellow(`Skipping invalid JSON file: ${file}`));
-          }
-          continue;
-        }
+  // Detect Helm charts based on specific keys
+  if (config.apiVersion && typeof config.apiVersion === "string" && config.apiVersion.includes("helm.sh")) {
+    services.push("helm"); // Helm is considered portable
+  }
+  if (config.kind && config.kind === "Chart") {
+    services.push("helm");
+  }
 
-        if (cfTemplate.Resources && typeof cfTemplate.Resources === "object") {
-          // For each resource, detect AWS or other provider usage
-          for (const resourceKey of Object.keys(cfTemplate.Resources)) {
-            const resourceObj = cfTemplate.Resources[resourceKey];
-            if (resourceObj.Type && typeof resourceObj.Type === "string") {
-              // E.g., AWS::Lambda::Function => aws_lambda_function
-              // Quick mapping approach (replace 'AWS::' with 'aws_' as a naive guess)
-              const typePath = resourceObj.Type.split("::");
-              if (typePath[0] === "AWS") {
-                providers.add("aws");
+  return { providers, services, highRiskIncrement };
+}
 
-                // Convert "AWS::Lambda::Function" -> "aws_lambda_function"
-                const guessedName = typePath.join("_").toLowerCase();
-                vendorServicesFound.push(guessedName);
-                totalServices++;
+/**
+ * Parses a CloudFormation JSON file to identify AWS services.
+ * @param filePath - Path to the JSON file.
+ * @returns An object containing providers and services if it's a valid CloudFormation template.
+ */
+async function parseCloudFormationFile(filePath: string): Promise<ParsedData> {
+  let cfTemplate: any;
+  try {
+    cfTemplate = await fs.readJson(filePath);
+  } catch (err) {
+    if (process.env.DEBUG === "true") {
+      console.warn(chalk.yellow(`Skipping invalid JSON file: ${filePath}`));
+    }
+    return { providers: [], services: [], highRiskIncrement: 0 };
+  }
 
-                // Optionally: detect high risk if it's a function or something else
-                if (
-                  guessedName.includes("lambda") ||
-                  guessedName.includes("ddb")
-                ) {
-                  highRiskServices++;
-                }
-              }
-            }
-          }
-        }
+  // Verify it's a CloudFormation template by checking for "Resources"
+  if (!cfTemplate.Resources || typeof cfTemplate.Resources !== "object") {
+    return { providers: [], services: [], highRiskIncrement: 0 };
+  }
 
-        // 4. package.json
-      } else if (file.endsWith("package.json")) {
-        const pkg = await fs.readJson(filePath);
-        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  let providers: string[] = [];
+  let services: string[] = [];
 
-        // Example: if a user depends on aws-sdk
-        if (deps["aws-sdk"] || deps["@aws-sdk/client-s3"]) {
-          providers.add("aws");
-          vendorServicesFound.push("aws_sdk");
-          totalServices++;
-          highRiskServices += 0.1;
-        }
-        if (deps["@azure/storage-blob"]) {
-          providers.add("azure");
-          vendorServicesFound.push("azure_blob");
-          totalServices++;
-          highRiskServices += 0.1;
-        }
-      }
-    } catch (err) {
-      // If we hit any error reading or parsing a file, log in debug mode only.
-      if (process.env.DEBUG === "true") {
-        console.warn(
-          chalk.yellow(`Error processing ${file}: ${(err as Error).message}`),
-        );
+  // Parse each resource to detect AWS services
+  for (const resourceKey of Object.keys(cfTemplate.Resources)) {
+    const resourceObj = cfTemplate.Resources[resourceKey];
+    if (resourceObj.Type && typeof resourceObj.Type === "string") {
+      const typePath = resourceObj.Type.split("::");
+      if (typePath[0] === "AWS") {
+        providers.push("aws");
+        const guessedName = typePath.join("_").toLowerCase(); // e.g., "AWS::Lambda::Function" -> "aws_lambda_function"
+        services.push(guessedName);
       }
     }
-  } // end for-of files
+  }
 
-  // Summarize lock-in scores based on discovered services
+  return { providers, services, highRiskIncrement: 0 };
+}
+
+/**
+ * Parses a package.json file to detect cloud provider dependencies.
+ * @param filePath - Path to the package.json file.
+ * @returns An object containing providers, services, and a high-risk increment for cloud dependencies.
+ */
+async function parsePackageJsonFile(filePath: string): Promise<ParsedData> {
+  const pkg = await fs.readJson(filePath);
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  let providers: string[] = [];
+  let services: string[] = [];
+  let highRiskIncrement = 0;
+
+  // Check for AWS dependencies
+  if (deps["aws-sdk"] || deps["@aws-sdk/client-s3"]) {
+    providers.push("aws");
+    services.push("aws_sdk");
+    highRiskIncrement += 0.1; // Arbitrary risk increment per cloud dependency
+  }
+
+  // Check for Azure dependencies
+  if (deps["@azure/storage-blob"]) {
+    providers.push("azure");
+    services.push("azure_blob");
+    highRiskIncrement += 0.1;
+  }
+
+  // Additional dependency checks can be added here
+  return { providers, services, highRiskIncrement };
+}
+
+/**
+ * Analyzes a list of files to compute the Freedom Score and assess cloud-related risks.
+ * @param files - Array of file paths relative to the root directory.
+ * @param rootDir - Root directory of the codebase.
+ * @returns A promise resolving to the ScanResults object with scores and risk assessments.
+ */
+export async function analyzeFiles(files: string[], rootDir: string): Promise<ScanResults> {
+  let vendorServicesFound: string[] = []; // All detected services
+  let providers = new Set<string>();      // Unique set of providers
+  let highRiskServices = 0;               // Accumulated high-risk score
+
+  // Process each file based on its type
+  for (const file of files) {
+    const filePath = path.join(rootDir, file);
+    try {
+      let parsedData: ParsedData;
+      if (file.endsWith(".tf")) {
+        parsedData = await parseTerraformFile(filePath);
+      } else if (file.endsWith(".yml") || file.endsWith(".yaml")) {
+        parsedData = await parseYamlFile(filePath);
+      } else if (file.endsWith(".json")) {
+        parsedData = await parseCloudFormationFile(filePath);
+      } else if (file.endsWith("package.json")) {
+        parsedData = await parsePackageJsonFile(filePath);
+      } else {
+        continue; // Skip unsupported file types
+      }
+
+      // Aggregate providers and services
+      parsedData.providers.forEach((p) => providers.add(p));
+      vendorServicesFound.push(...parsedData.services);
+      highRiskServices += parsedData.highRiskIncrement;
+    } catch (err) {
+      if (process.env.DEBUG === "true") {
+        console.warn(chalk.yellow(`Error processing ${file}: ${(err as Error).message}`));
+      }
+    }
+  }
+
+  const totalServices = vendorServicesFound.length;
   let lockInScore = 0;
+  let openStandardsCount = 0;
+
+  // Evaluate each service for lock-in, portability, and risk
   vendorServicesFound.forEach((service) => {
     const vendorService = Object.values(vendorServices)
       .flat()
       .find((s) => s.name === service);
     if (vendorService) {
-      lockInScore += vendorService.lockInScore;
+      lockInScore += vendorService.lockInScore; // Sum lock-in scores
+      if (vendorService.deplatformRisk > 0.3) {
+        highRiskServices += 1; // Increment for services with high deplatforming risk
+      }
+      if (vendorServices.portable.some((s) => s.name === service)) {
+        openStandardsCount += 1; // Count portable services (e.g., "docker", "helm")
+      }
     }
   });
+
+  // Normalize lock-in score to a 0-100 scale
   lockInScore = totalServices ? (lockInScore / totalServices) * 100 : 0;
 
-  // Single-provider penalty if we only found one provider
+  // Calculate deplatforming risk score
+  // - Single provider penalty: 50 if only one provider is detected
+  // - High-risk penalty: 20 points per high-risk service or fraction thereof
+  // - Redundancy penalty: 30 if only one provider (no redundancy)
   const singleProviderPenalty = providers.size === 1 ? 50 : 0;
-  // Each high-risk service adds 20 points
   const highRiskPenalty = highRiskServices * 20;
-  // Another penalty for not having multiple redundancy
   const redundancyPenalty = providers.size === 1 ? 30 : 0;
   const deplatformingRiskScore = Math.min(
     100,
     singleProviderPenalty + highRiskPenalty + redundancyPenalty,
   );
 
-  // Portability score: fraction of discovered resources flagged as "openStandardsCount"
-  const portabilityScore = totalServices
-    ? openStandardsCount / totalServices
-    : 0;
+  // Calculate portability score as the fraction of services using open standards
+  const portabilityScore = totalServices ? openStandardsCount / totalServices : 0;
 
-  // Example CLV formula
+  // Calculate Freedom Score: 100 minus weighted penalties
+  // - Lock-in penalty: 50% of lockInScore
+  // - Deplatforming penalty: 30% of deplatformingRiskScore
+  // - Proprietary format penalty: 20% of (1 - portabilityScore)
   const freedomScore = Math.round(
     100 -
       lockInScore * 0.5 -
@@ -238,7 +258,6 @@ export async function analyzeFiles(
       (1 - portabilityScore) * 20,
   );
 
-  // Return our computed scan results
   return {
     freedomScore,
     lockInScore,
@@ -246,14 +265,9 @@ export async function analyzeFiles(
     portabilityScore,
     vendorServices: vendorServicesFound,
     providers: Array.from(providers),
-    riskLabel:
-      freedomScore < 50 ? "VULNERABLE" : freedomScore <= 75 ? "AT RISK" : "CAUTIOUS",
+    riskLabel: freedomScore < 50 ? "VULNERABLE" : freedomScore <= 75 ? "AT RISK" : "CAUTIOUS",
     deplatformingRisk:
-      deplatformingRiskScore > 70
-        ? "HIGH"
-        : deplatformingRiskScore > 30
-          ? "Moderate"
-          : "Low",
+      deplatformingRiskScore > 70 ? "HIGH" : deplatformingRiskScore > 30 ? "Moderate" : "Low",
     recommendations: [
       "Ditch proprietary services like Lambda for Dockerized functions. Run them anywhere.",
       "Replace vendor-locked storage like S3 with MinIO or self-hosted solutions. Own your data.",
