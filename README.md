@@ -86,19 +86,29 @@ Install dependencies:
 ```bash
 npm install
 ```
+- Installs all dependencies defined in the package.json file you just cloned.
 
-Build and link locally:
 
 ```bash
 npm run build
-npm link
 ```
+-Will create a dist/ directory and copy your data/ folder there. 
+-Compiles TypeScript to JavaScript in dist/
+
+```bash
+sudo npm link
+```
+-Will create a global symlink under /usr/local/lib/node_modules.
+-Lets you run this tool from anywhere using the CLI name defined in bin inside package.json
 
 Run tests:
 
 ```bash
 npm test
 ```
+-Runs the test suite.
+
+-Look inside the tests/ folder and package.json under "scripts" to see what's being tested and how.
 
 ## License
 
