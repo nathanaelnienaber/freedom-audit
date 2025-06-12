@@ -46,28 +46,52 @@ export async function displayReport(
     console.log(`Timestamp: ${report.timestamp}`);
 
     // Color for risk label based on severity
-    const riskColor = report.riskLabel === "VULNERABLE" ? chalk.red :
-      report.riskLabel === "AT RISK" ? chalk.yellow :
-      chalk.green;
-    console.log(chalk.bold(`Freedom Score: ${report.freedomScore}/100 (${riskColor(report.riskLabel)})`));
+    const riskColor =
+      report.riskLabel === "VULNERABLE"
+        ? chalk.red
+        : report.riskLabel === "AT RISK"
+          ? chalk.yellow
+          : chalk.green;
+    console.log(
+      chalk.bold(
+        `Freedom Score: ${report.freedomScore}/100 (${riskColor(report.riskLabel)})`,
+      ),
+    );
 
     console.log(`Vendor Lock-In: ${report.lockInScore}%`);
 
     // Color for deplatforming risk based on level
-    const deplatformColor = report.deplatformingRisk === "HIGH" ? chalk.red :
-      report.deplatformingRisk === "Moderate" ? chalk.yellow :
-      chalk.green;
-    console.log(`Deplatforming Risk: ${deplatformColor(report.deplatformingRisk)}`);
+    const deplatformColor =
+      report.deplatformingRisk === "HIGH"
+        ? chalk.red
+        : report.deplatformingRisk === "Moderate"
+          ? chalk.yellow
+          : chalk.green;
+    console.log(
+      `Deplatforming Risk: ${deplatformColor(report.deplatformingRisk)}`,
+    );
 
     // Separator
     console.log(chalk.dim("—".repeat(50)));
 
     // Freedom Score Calculation
     console.log(chalk.dim("Freedom Score Calculation:"));
-    console.log(`Base Score: 100`);
-    console.log(chalk.red(`- Vendor Lock-In Penalty: ${(report.lockInScore * 0.5).toFixed(1)}`));
-    console.log(chalk.red(`- Deplatforming Risk Penalty: ${(report.deplatformingRiskScore * 0.3).toFixed(1)}`));
-    console.log(chalk.red(`- Proprietary Format Penalty: ${((1 - report.portabilityScore) * 20).toFixed(1)}`));
+    console.log("Base Score: 100");
+    console.log(
+      chalk.red(
+        `- Vendor Lock-In Penalty: ${(report.lockInScore * 0.5).toFixed(1)}`,
+      ),
+    );
+    console.log(
+      chalk.red(
+        `- Deplatforming Risk Penalty: ${(report.deplatformingRiskScore * 0.3).toFixed(1)}`,
+      ),
+    );
+    console.log(
+      chalk.red(
+        `- Proprietary Format Penalty: ${((1 - report.portabilityScore) * 20).toFixed(1)}`,
+      ),
+    );
     console.log(chalk.bold(`= Freedom Score: ${report.freedomScore}`));
 
     // Separator
@@ -75,14 +99,18 @@ export async function displayReport(
 
     // Real-World Wake-Up Calls
     console.log(chalk.bold("Real-World Wake-Up Calls:"));
-    report.deplatformingExamples.forEach((ex) => console.log(chalk.yellow(`- ${ex}`)));
+    for (const ex of report.deplatformingExamples) {
+      console.log(chalk.yellow(`- ${ex}`));
+    }
 
     // Separator
     console.log(chalk.dim("—".repeat(50)));
 
     // Escape Plan
     console.log(chalk.bold("Escape Plan:"));
-    report.recommendations.forEach((rec) => console.log(`- ${rec}`));
+    for (const rec of report.recommendations) {
+      console.log(`- ${rec}`);
+    }
   } catch (err) {
     throw new Error(`Failed to display report: ${(err as Error).message}`);
   }

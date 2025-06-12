@@ -30,7 +30,9 @@ interface ScanOptions {
  * @returns A promise resolving to the scan results, including Freedom Score, risks, and recommendations.
  * @throws Error if scanning fails, no files are found, or patterns are invalid.
  */
-export async function scanCodebase(options: ScanOptions = {}): Promise<ScanResults> {
+export async function scanCodebase(
+  options: ScanOptions = {},
+): Promise<ScanResults> {
   const rootDir = options.dir || process.cwd();
   const verbose = options.verbose || process.env.VERBOSE === "true";
   const defaultPatterns = [
@@ -45,9 +47,10 @@ export async function scanCodebase(options: ScanOptions = {}): Promise<ScanResul
     "!build/**",
     "!vendor/**",
   ];
-  const patterns = options.filePatterns?.map(p => p.trim()) ||
-                   process.env.FILE_PATTERNS?.split(",").map(p => p.trim()) ||
-                   defaultPatterns;
+  const patterns =
+    options.filePatterns?.map((p) => p.trim()) ||
+    process.env.FILE_PATTERNS?.split(",").map((p) => p.trim()) ||
+    defaultPatterns;
 
   if (verbose) {
     console.log(chalk.dim(`Scanning directory: ${rootDir}`));
@@ -58,20 +61,28 @@ export async function scanCodebase(options: ScanOptions = {}): Promise<ScanResul
     const files = await globby(patterns, { cwd: rootDir, gitignore: true });
     if (!files.length) {
       throw new Error(
-        `No infrastructure files found in ${rootDir}. Ensure files match patterns (${patterns.join(", ")}) or check your .env FILE_PATTERNS.`
+        `No infrastructure files found in ${rootDir}. Ensure files match patterns (${patterns.join(", ")}) or check your .env FILE_PATTERNS.`,
       );
     }
     if (verbose || process.env.DEBUG === "true") {
-      console.log(chalk.dim(`Found ${files.length} files: ${files.join(", ")}`));
+      console.log(
+        chalk.dim(`Found ${files.length} files: ${files.join(", ")}`),
+      );
       if (process.env.DEBUG === "true") {
-        console.log(chalk.dim(`Excluded directories: node_modules, dist, build, vendor`));
+        console.log(
+          chalk.dim("Excluded directories: node_modules, dist, build, vendor"),
+        );
       }
     }
     return await analyzeFiles(files, rootDir);
   } catch (err) {
     if (err instanceof Error && err.message.includes("Invalid glob pattern")) {
-      throw new Error(`Invalid file pattern in ${patterns.join(", ")}. Please check your patterns.`);
+      throw new Error(
+        `Invalid file pattern in ${patterns.join(", ")}. Please check your patterns.`,
+      );
     }
-    throw new Error(`Scanning failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+    throw new Error(
+      `Scanning failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+    );
   }
 }
