@@ -3,20 +3,19 @@
 // How it works: Jest mocks return sample file lists and scores, then assertions confirm scanner behavior.
 
 import { scanCodebase } from "../src/scanner";
-import { analyzeFiles } from "../src/analyzer";
+import * as analyzer from "../src/analyzer";
 import { globby } from "globby";
 
-// Mock dependencies so we don't hit the real file system
 jest.mock("globby", () => ({
   globby: jest.fn(),
 }));
-jest.mock("../src/analyzer");
+
 
 describe("scanner", () => {
   // We ensure each test starts with FILE_PATTERNS cleared,
   // so we can confirm fallback patterns or custom patterns
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     // biome-ignore lint/performance/noDelete: test cleanup
     delete process.env.FILE_PATTERNS;
   });
@@ -30,8 +29,10 @@ describe("scanner", () => {
       "infra.tf",
       "template.json",
       "docker-compose.yml",
-    ]);
-    (analyzeFiles as jest.Mock).mockResolvedValue({ freedomScore: 85 });
+    ] as any);
+    const analyzeSpy = jest
+      .spyOn(analyzer, "analyzeFiles")
+      .mockResolvedValue({ freedomScore: 85 } as any);
 
     const results = await scanCodebase({ dir: "/test-project" });
     // We expect these patterns to be used if FILE_PATTERNS is undefined
@@ -52,7 +53,7 @@ describe("scanner", () => {
     );
 
     // We expect the files returned by globby to go to analyzeFiles
-    expect(analyzeFiles).toHaveBeenCalledWith(
+    expect(analyzeSpy).toHaveBeenCalledWith(
       ["infra.tf", "template.json", "docker-compose.yml"],
       "/test-project",
     );
@@ -63,9 +64,13 @@ describe("scanner", () => {
   it("uses patterns from FILE_PATTERNS if set in environment", async () => {
     // We'll force environment override
     process.env.FILE_PATTERNS = "**/*.yaml,**/*.json";
-
-    (globby as jest.Mock).mockResolvedValue(["main.yaml", "cfn-template.json"]);
-    (analyzeFiles as jest.Mock).mockResolvedValue({ freedomScore: 75 });
+    (globby as jest.Mock).mockResolvedValue([
+      "main.yaml",
+      "cfn-template.json",
+    ] as any);
+    const analyzeSpy = jest
+      .spyOn(analyzer, "analyzeFiles")
+      .mockResolvedValue({ freedomScore: 75 } as any);
 
     const results = await scanCodebase({ dir: "/custom-env" });
     // If environment variable is set, we expect these patterns
@@ -74,11 +79,30 @@ describe("scanner", () => {
       gitignore: true,
     });
     // We expect these returned files to be passed to analyzeFiles
-    expect(analyzeFiles).toHaveBeenCalledWith(
+    expect(analyzeSpy).toHaveBeenCalledWith(
       ["main.yaml", "cfn-template.json"],
       "/custom-env",
     );
     // Confirm results
     expect(results.freedomScore).toEqual(75);
+  });
+
+  it("scans the fixture directory and analyzes files", async () => {
+    const path = require("node:path");
+    const fixtureDir = path.join(__dirname, "fixtures");
+    (globby as jest.Mock).mockResolvedValue([
+      "main.tf",
+      "serverless.yml",
+      "cfn-template.json",
+      "package.json",
+      "Dockerfile",
+    ] as any);
+    const results = await scanCodebase({
+      dir: fixtureDir,
+    });
+
+    expect(results.providers).toContain("aws");
+    expect(results.vendorServices).toContain("aws_lambda_function");
+    expect(results.vendorServices).toContain("aws_s3_bucket");
   });
 });

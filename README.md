@@ -137,6 +137,19 @@ Run tests:
 npm test
 ```
 
+### Using Test Fixtures
+
+Small infrastructure examples live under `tests/fixtures`. Run the scanner on
+this directory to see a sample report:
+
+```bash
+tmrw audit tests/fixtures
+```
+
+The fixtures include Terraform, Serverless YAML, CloudFormation, and a
+`package.json` with `aws-sdk` so both manual and automated tests have stable
+inputs.
+
 ## License
 
 MIT License  
