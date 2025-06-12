@@ -1,7 +1,7 @@
 // tmrw audit - CLI and API Entry Point
-// Why this exists: To provide a user-friendly CLI and programmatic API for auditing codebases and guiding users toward sovereign infrastructure.
-// What it does: Defines CLI commands (audit, report, escape) and exports API functions to scan codebases, generate reports, and promote the Sovereign Stack.
-// How it works: Uses commander for CLI commands and exposes functions for programmatic use, orchestrating scanning, analysis, and reporting via scanner, analyzer, and report modules.
+// Why this exists: We need a simple command to run an audit and view reports.
+// What it does: Offers CLI commands and exports functions to scan a project and create a report.
+// How it works: Commander handles the CLI while our functions call the scanner, analyzer and report modules.
 // Part of the TMRW Manifesto for user-owned, unkillable infrastructure.
 // Copyright (c) 2025 tmrw.it | MIT License
 

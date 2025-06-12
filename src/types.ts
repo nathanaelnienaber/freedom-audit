@@ -1,8 +1,8 @@
 // tmrw audit - Type Definitions
-// Why this exists: To ensure type safety and consistency across the tmrw audit tool’s modules for reliable data handling.
-// What it does: Defines TypeScript interfaces (VendorService, ScanResults) for services, scores, and audit results.
-// How it works: Provides structured types for vendor services and scan results, used by scanner, analyzer, and report modules to enforce data integrity.
-// Part of the TMRW Manifesto for user-owned, unchained  infrastructure.
+// Why this exists: We share types so every module uses the same shapes.
+// What it does: Declares interfaces for vendor services and scan results.
+// How it works: These types are imported by the scanner, analyzer and report modules to keep data consistent.
+// Part of the TMRW Manifesto for user-owned, unchained infrastructure.
 // Copyright (c) 2025 tmrw.it | MIT License
 
 /**
