@@ -28,20 +28,27 @@ describe("analyzer", () => {
     expect(results).toHaveProperty("deplatformingExamples");
   });
 
-  it("parses serverless YAML with function objects", async () => {
-    const fs = require("node:fs");
+  it("parses fixture YAML for functions", async () => {
     const path = require("node:path");
-    const tmpDir = fs.mkdtempSync(path.join(process.cwd(), "srvless-"));
-    const yamlPath = path.join(tmpDir, "serverless.yml");
-    fs.writeFileSync(
-      yamlPath,
-      "provider:\n  name: aws\nfunctions:\n  hello:\n    handler: index.handler\n"
-    );
-
-    const results = await analyzeFiles(["serverless.yml"], tmpDir);
+    const fixtureDir = path.join(__dirname, "fixtures");
+    const results = await analyzeFiles(["serverless.yml"], fixtureDir);
 
     expect(results.vendorServices).toContain("aws_lambda_function");
+  });
 
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  it("parses multiple fixture files", async () => {
+    const path = require("node:path");
+    const fixtureDir = path.join(__dirname, "fixtures");
+    const files = [
+      "main.tf",
+      "serverless.yml",
+      "cfn-template.json",
+      "package.json",
+    ];
+    const results = await analyzeFiles(files, fixtureDir);
+
+    expect(results.providers).toContain("aws");
+    expect(results.vendorServices).toContain("aws_lambda_function");
+    expect(results.vendorServices).toContain("aws_s3_bucket");
   });
 });

@@ -1,0 +1,6 @@
+{
+  "name": "fixture",
+  "dependencies": {
+    "aws-sdk": "^2.0.0"
+  }
+}
