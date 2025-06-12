@@ -1,15 +1,6 @@
-/**
- * scanner.test.ts
- *
- * WHY THIS FILE EXISTS:
- * This file tests the scanning logic in scanner.ts. It verifies that:
- *  - Default file patterns include *$$/$*$.$json for CloudFormation.
- *  - Environment variable overrides for FILE_PATTERNS also work.
- *
- * TEAM-FRIENDLY COMMENTS:
- *  - We mock globby to control which files it returns.
- *  - We mock analyzeFiles so we only test scanning, not analysis details.
- */
+// Why this exists: Verify that scanCodebase finds files and passes them to the analyzer correctly.
+// What it does: Mocks globby and analyzeFiles to test pattern handling and result forwarding.
+// How it works: Jest mocks return sample file lists and scores, then assertions confirm scanner behavior.
 
 import { scanCodebase } from "../src/scanner";
 import { analyzeFiles } from "../src/analyzer";
