@@ -10,7 +10,7 @@ import path from "path";
 import hcl from "hcl2-parser";
 import yaml from "js-yaml";
 import chalk from "chalk";
-import { ScanResults, VendorService } from "./types";
+import type { ScanResults, VendorService } from "./types";
 export { ScanResults, VendorService } from "./types";
 
 // Load vendor services data for scoring and portability checks
@@ -71,16 +71,33 @@ async function parseYamlFile(filePath: string): Promise<ParsedData> {
     return { providers: [], services: [], highRiskIncrement: 0 };
   }
 
-  let providers: string[] = [];
+  const providers: string[] = [];
   let services: string[] = [];
   let highRiskIncrement = 0;
 
   // Detect serverless framework usage (e.g., AWS Serverless Framework)
   if (config.provider?.name) {
     providers.push(config.provider.name);
-    const functions = config.functions || [];
-    services = functions.map(() => `${config.provider.name}_function`);
-    highRiskIncrement = functions.length * 0.2; // Each function adds 0.2 to high-risk score
+
+    const fnObj = config.functions || {};
+    const functionCount = Array.isArray(fnObj)
+      ? fnObj.length
+      : Object.keys(fnObj).length;
+
+    const serviceNameMap: Record<string, string> = {
+      aws: "aws_lambda_function",
+      azure: "azurerm_function_app",
+      gcp: "google_cloud_functions",
+      ibm: "ibm_cloud_function",
+      oracle: "oci_functions_function",
+    };
+
+    const serviceName =
+      serviceNameMap[config.provider.name] ||
+      `${config.provider.name}_function`;
+
+    services.push(...Array(functionCount).fill(serviceName));
+    highRiskIncrement = functionCount * 0.2; // Each function adds 0.2 to high-risk score
   }
 
   // Detect docker-compose files (assumed portable)
@@ -121,8 +138,8 @@ async function parseCloudFormationFile(filePath: string): Promise<ParsedData> {
     return { providers: [], services: [], highRiskIncrement: 0 };
   }
 
-  let providers: string[] = [];
-  let services: string[] = [];
+  const providers: string[] = [];
+  const services: string[] = [];
 
   // Parse each resource to detect AWS services
   for (const resourceKey of Object.keys(cfTemplate.Resources)) {
@@ -148,8 +165,8 @@ async function parseCloudFormationFile(filePath: string): Promise<ParsedData> {
 async function parsePackageJsonFile(filePath: string): Promise<ParsedData> {
   const pkg = await fs.readJson(filePath);
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-  let providers: string[] = [];
-  let services: string[] = [];
+  const providers: string[] = [];
+  const services: string[] = [];
   let highRiskIncrement = 0;
 
   // Check for AWS dependencies
@@ -177,8 +194,8 @@ async function parsePackageJsonFile(filePath: string): Promise<ParsedData> {
  * @returns A promise resolving to the ScanResults object with scores and risk assessments.
  */
 export async function analyzeFiles(files: string[], rootDir: string): Promise<ScanResults> {
-  let vendorServicesFound: string[] = []; // All detected services
-  let providers = new Set<string>();      // Unique set of providers
+  const vendorServicesFound: string[] = []; // All detected services
+  const providers = new Set<string>();      // Unique set of providers
   let highRiskServices = 0;               // Accumulated high-risk score
 
   // Process each file based on its type

@@ -8,7 +8,7 @@
 import { program } from "commander";
 import { scanCodebase } from "./scanner";
 import { generateReport, displayReport } from "./report";
-import { ScanResults } from "./types";
+import type { ScanResults } from "./types";
 import dotenv from "dotenv";
 import chalk from "chalk";
 
@@ -43,7 +43,7 @@ export async function runAudit(options: AuditOptions = {}): Promise<ScanResults>
  * @param file - Path to the report file (defaults to ./tmrw-audit-report.json).
  * @throws Error if reading or displaying the report fails.
  */
-export async function getReport(file: string = "./tmrw-audit-report.json"): Promise<void> {
+export async function getReport(file = "./tmrw-audit-report.json"): Promise<void> {
   await displayReport(file);
 }
 

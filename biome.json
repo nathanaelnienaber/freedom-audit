@@ -3,16 +3,13 @@
     "enabled": true,
     "rules": {
       "style": {
-        "noImplicitAny": "error",
         "useBlockStatements": "error"
       },
       "correctness": {
         "noUnusedVariables": "error",
         "noUnreachable": "error"
       },
-      "suspicious": {
-        "noImplicitReturns": "warn"
-      }
+      "suspicious": {}
     },
     "ignore": ["dist/**/*"]
   },
@@ -21,10 +18,6 @@
     "formatWithErrors": false,
     "indentStyle": "space",
     "indentWidth": 2
-  },
-  "tests": {
-    "enabled": true,
-    "include": ["tests/**/*.test.ts"]
   },
   "javascript": {
     "parser": {

@@ -14,6 +14,7 @@ import { analyzeFiles } from "../src/analyzer";
 describe("analyzer", () => {
   // Optionally, we can ensure no environment override is set here, in case it affects anything.
   beforeAll(() => {
+    // biome-ignore lint/performance/noDelete: test setup
     delete process.env.FILE_PATTERNS;
   });
 
@@ -22,7 +23,7 @@ describe("analyzer", () => {
     const results = await analyzeFiles([], process.cwd());
 
     // Basic sanity checks
-    expect(results).toHaveProperty("clvScore");
+    expect(results).toHaveProperty("freedomScore");
     expect(results).toHaveProperty("lockInScore");
     expect(results).toHaveProperty("deplatformingRiskScore");
     expect(results).toHaveProperty("portabilityScore");
@@ -32,5 +33,22 @@ describe("analyzer", () => {
     expect(results).toHaveProperty("deplatformingRisk");
     expect(results).toHaveProperty("recommendations");
     expect(results).toHaveProperty("deplatformingExamples");
+  });
+
+  it("parses serverless YAML with function objects", async () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const tmpDir = fs.mkdtempSync(path.join(process.cwd(), "srvless-"));
+    const yamlPath = path.join(tmpDir, "serverless.yml");
+    fs.writeFileSync(
+      yamlPath,
+      "provider:\n  name: aws\nfunctions:\n  hello:\n    handler: index.handler\n"
+    );
+
+    const results = await analyzeFiles(["serverless.yml"], tmpDir);
+
+    expect(results.vendorServices).toContain("aws_lambda_function");
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });

@@ -7,7 +7,7 @@
 
 import fs from "fs-extra";
 import chalk from "chalk";
-import { ScanResults } from "./types";
+import type { ScanResults } from "./types";
 
 /**
  * Generates a JSON report from scan results.
