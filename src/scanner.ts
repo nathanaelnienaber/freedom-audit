@@ -6,7 +6,7 @@
 // Copyright (c) 2025 tmrw.it | MIT License
 
 import { globby } from "globby";
-import { analyzeFiles, ScanResults } from "./analyzer";
+import { analyzeFiles, type ScanResults } from "./analyzer";
 import chalk from "chalk";
 import dotenv from "dotenv";
 

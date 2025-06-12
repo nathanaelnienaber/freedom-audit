@@ -26,11 +26,13 @@ describe("scanner", () => {
   // so we can confirm fallback patterns or custom patterns
   afterEach(() => {
     jest.clearAllMocks();
+    // biome-ignore lint/performance/noDelete: test cleanup
     delete process.env.FILE_PATTERNS;
   });
 
   it("uses default patterns including **/*.json when FILE_PATTERNS is not set", async () => {
     // Make sure FILE_PATTERNS is unset right now
+    // biome-ignore lint/performance/noDelete: ensure var unset
     delete process.env.FILE_PATTERNS;
 
     (globby as jest.Mock).mockResolvedValue([
@@ -38,9 +40,9 @@ describe("scanner", () => {
       "template.json",
       "docker-compose.yml",
     ]);
-    (analyzeFiles as jest.Mock).mockResolvedValue({ clvScore: 85 });
+    (analyzeFiles as jest.Mock).mockResolvedValue({ freedomScore: 85 });
 
-    const results = await scanCodebase("/test-project");
+    const results = await scanCodebase({ dir: "/test-project" });
     // We expect these patterns to be used if FILE_PATTERNS is undefined
     expect(globby).toHaveBeenCalledWith(
       [
@@ -64,7 +66,7 @@ describe("scanner", () => {
       "/test-project",
     );
     // Confirm results
-    expect(results.clvScore).toEqual(85);
+    expect(results.freedomScore).toEqual(85);
   });
 
   it("uses patterns from FILE_PATTERNS if set in environment", async () => {
@@ -72,9 +74,9 @@ describe("scanner", () => {
     process.env.FILE_PATTERNS = "**/*.yaml,**/*.json";
 
     (globby as jest.Mock).mockResolvedValue(["main.yaml", "cfn-template.json"]);
-    (analyzeFiles as jest.Mock).mockResolvedValue({ clvScore: 75 });
+    (analyzeFiles as jest.Mock).mockResolvedValue({ freedomScore: 75 });
 
-    const results = await scanCodebase("/custom-env");
+    const results = await scanCodebase({ dir: "/custom-env" });
     // If environment variable is set, we expect these patterns
     expect(globby).toHaveBeenCalledWith(["**/*.yaml", "**/*.json"], {
       cwd: "/custom-env",
@@ -86,6 +88,6 @@ describe("scanner", () => {
       "/custom-env",
     );
     // Confirm results
-    expect(results.clvScore).toEqual(75);
+    expect(results.freedomScore).toEqual(75);
   });
 });
