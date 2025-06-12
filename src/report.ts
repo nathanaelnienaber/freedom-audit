@@ -1,8 +1,8 @@
 // tmrw audit - Report Generator
-// Why this exists: To deliver clear, actionable insights from audit results, helping users understand and reduce cloud dependency risks.
-// What it does: Generates JSON reports and displays formatted audit results, including Freedom Score, risks, and recommendations.
-// How it works: Saves scan results as JSON with timestamps and displays them with formatted console output, highlighting scores, risks, and escape plans.
-// Part of the TMRW Manifesto for user-owned, unchained  infrastructure.
+// Why this exists: We want to share the audit results in a friendly format.
+// What it does: Writes scan results to JSON and prints the key scores and risks.
+// How it works: Results are saved with a timestamp and displayed with color formatting.
+// Part of the TMRW Manifesto for user-owned, unchained infrastructure.
 // Copyright (c) 2025 tmrw.it | MIT License
 
 import fs from "fs-extra";

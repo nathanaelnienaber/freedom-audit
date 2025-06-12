@@ -1,7 +1,7 @@
 // tmrw audit - File Scanner
-// Why this exists: To locate relevant files in a codebase for auditing cloud dependencies, enabling accurate assessment and scoring.
-// What it does: Scans for files (e.g., *.tf, *.yml, package.json, Dockerfile) based on configurable patterns, preparing them for analysis.
-// How it works: Uses globby to find files matching patterns (from .env or defaults), excludes irrelevant directories, and passes files to the analyzer.
+// Why this exists: We need to find infrastructure files before we can analyze them.
+// What it does: Searches for Terraform, YAML, JSON and package.json files based on glob patterns.
+// How it works: globby matches the patterns (from .env or defaults), skipping build folders, then sends the list to the analyzer.
 // Part of the TMRW Manifesto for user-owned, unchained infrastructure.
 // Copyright (c) 2025 tmrw.it | MIT License
 

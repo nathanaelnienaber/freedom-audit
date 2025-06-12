@@ -1,7 +1,7 @@
 // tmrw audit - Codebase Analyzer
-// Why this exists: To identify and quantify lock-in, deplatforming, and proprietary format risks in a codebase, empowering users to achieve an unchained infrastructure.
-// What it does: Parses Terraform (.tf), YAML (.yml/.yaml), CloudFormation JSON, and package.json files to detect cloud service dependencies, calculate the Freedom Score, and assess lock-in, deplatforming, and portability risks.
-// How it works: Reads files, identifies providers and services using vendor-services.json, computes scores based on lock-in, deplatforming risk, and portability, and returns actionable results.
+// Why this exists: We need a quick look at which cloud services a project relies on.
+// What it does: Reads Terraform, YAML, CloudFormation JSON and package.json files to find providers and services.
+// How it works: Each parser grabs service names and then we score them to measure lock-in and risk.
 // Part of the TMRW Manifesto for user-owned, unchained infrastructure.
 // Copyright (c) 2025 tmrw.it | MIT License
 

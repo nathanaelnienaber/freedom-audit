@@ -1,13 +1,6 @@
-/**
- * analyzer.test.ts
- *
- * WHY THIS FILE EXISTS:
- * This test verifies that analyzer.ts properly detects cloud resources and calculates risk scores.
- *
- * TEAM-FRIENDLY COMMENTS:
- *  - We ensure there's at least one 'it(...)' block so Jest doesn't complain about no tests.
- *  - This test calls the real 'analyzeFiles' from '../src/analyzer'.
- */
+// Why this exists: Ensure analyzer.ts correctly detects cloud resources and calculates scores.
+// What it does: Runs the analyzer on sample files and checks the returned structure and values.
+// How it works: Uses Jest to call analyzeFiles with temporary data and asserts key properties.
 
 import { analyzeFiles } from "../src/analyzer";
 
